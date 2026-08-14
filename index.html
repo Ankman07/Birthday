@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEXFOLIO — Account Verification</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,600&family=Caveat:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap');
+
+  :root{
+    --void:#020304;
+    --void2:#060a12;
+    --panel:#090d14;
+    --cyan:#7fa3bf;
+    --cyan-dim:#3a4c5c;
+    --violet:#565b7a;
+    --frost:#dde3ea;
+    --frost-dim:#5c6a7d;
+
+    --warm-ink:#241a16;
+    --ember:#e8935b;
+    --ember-glow:#f3b183;
+    --gold:#c9a227;
+    --gold-light:#e8cf7a;
+    --parchment:#f4e9d8;
+    --parchment-dim:#cdb99b;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; min-height:100vh; background:var(--void); color:var(--frost);
+    font-family:'Work Sans', system-ui, sans-serif; overflow-x:hidden; }
+
+  /* ---------- backgrounds ---------- */
+  .bg-layer{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .bg-cold{
+    background:
+      radial-gradient(ellipse 700px 500px at 15% 10%, rgba(86,91,122,.09), transparent 60%),
+      radial-gradient(ellipse 800px 600px at 85% 85%, rgba(127,163,191,.07), transparent 60%),
+      linear-gradient(var(--void2), var(--void2)) ;
+    background-color: var(--void);
+  }
+  .bg-cold::before{
+    content:""; position:absolute; inset:0; opacity:.16;
+    background-image:
+      linear-gradient(rgba(127,163,191,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(127,163,191,.06) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 90%);
+  }
+  .bg-warm{
+    position:fixed; inset:0; z-index:0; opacity:0; transition: opacity 2.6s ease;
+    background:
+      radial-gradient(ellipse at 50% -10%, #4a2f22 0%, transparent 60%),
+      radial-gradient(ellipse at 20% 110%, #3a2419 0%, transparent 55%),
+      var(--warm-ink);
+  }
+  .node-particle{ position:absolute; border-radius:50%; background:var(--cyan); box-shadow:0 0 4px var(--cyan);
+    opacity:0; animation: floatNode ease-in-out infinite; }
+  @keyframes floatNode{ 0%,100%{ opacity:0; transform:translateY(0);} 15%{opacity:.7;} 50%{ transform:translateY(-14px); opacity:.9;} 85%{opacity:.4;} }
+  .ember-particle{ position:absolute; bottom:-10px; border-radius:50%;
+    background: radial-gradient(circle, var(--ember-glow), transparent 70%); opacity:0; animation: drift linear infinite; }
+  @keyframes drift{ 0%{ transform:translateY(0) translateX(0); opacity:0;} 12%{opacity:.9;} 88%{opacity:.3;}
+    100%{ transform:translateY(-108vh) translateX(var(--dx)); opacity:0;} }
+
+  /* ---------- ticker ---------- */
+  .ticker-wrap{ position:relative; z-index:2; width:100%; overflow:hidden; background:rgba(3,5,8,.75);
+    border-bottom:1px solid rgba(127,163,191,.1); padding:8px 0; backdrop-filter: blur(6px); }
+  .ticker-track{ display:flex; gap:40px; white-space:nowrap; animation: tickerMove 26s linear infinite; width:max-content; }
+  .ticker-track span{ font-family:'JetBrains Mono', monospace; font-size:.78rem; color:var(--frost-dim); letter-spacing:.02em; }
+  .ticker-track span b{ color:var(--cyan); font-weight:500; }
+  .ticker-track .pct{ color:var(--frost-dim); opacity:.8; }
+  @keyframes tickerMove{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+  .topnav{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px; }
+  .brand{ font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:.03em; font-size:1.1rem;
+    color: var(--frost-dim); opacity:.9; }
+  .badge{ font-family:'JetBrains Mono', monospace; font-size:.7rem; color:var(--frost-dim); border:1px solid rgba(127,163,191,.18);
+    padding:4px 10px; border-radius:999px; opacity:.8; }
+  .act1-chrome.hidden, .ticker-wrap.hidden{ display:none; }
+
+  /* ---------- stage/card ---------- */
+  .stage{ position:relative; z-index:1; min-height:82vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .card{ position:relative; width:100%; max-width:520px; background: linear-gradient(180deg, rgba(7,10,16,.92), rgba(4,6,10,.95));
+    border:1px solid rgba(127,163,191,.12); border-radius:10px; padding:44px 38px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.02); backdrop-filter: blur(4px); }
+
+  .screen{ display:none; } .screen.active{ display:block; animation: fadeSlide .55s ease; }
+  @keyframes fadeSlide{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  .stepper{ font-family:'JetBrains Mono', monospace; font-size:.72rem; color:var(--cyan); letter-spacing:.06em;
+    margin:0 0 10px; text-transform:uppercase; }
+  h1.display{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(1.5rem,4.6vw,2.15rem);
+    line-height:1.2; margin:0 0 12px; color:var(--frost); }
+  p.sub{ color:var(--frost-dim); font-size:.98rem; line-height:1.55; margin:0 0 26px; }
+
+  label.field-label{ display:block; font-family:'JetBrains Mono', monospace; font-size:.82rem; color:var(--frost-dim);
+    margin-bottom:10px; letter-spacing:.02em; }
+  input[type=text], input[type=date]{ background:none; border:none; border-bottom:2px solid rgba(126,147,172,.35);
+    font-family:'Space Grotesk', sans-serif; font-size:1.3rem; color:var(--frost); padding:8px 2px; width:100%;
+    margin-bottom:10px; font-weight:600; color-scheme: dark; }
+  input:focus{ outline:none; border-color: var(--cyan); }
+  input::placeholder{ color: rgba(126,147,172,.5); font-weight:400; }
+  .micro{ font-family:'JetBrains Mono', monospace; font-size:.72rem; color:var(--frost-dim); opacity:.7; margin-bottom:24px; }
+
+  .btn{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:.95rem; color:var(--void);
+    background: linear-gradient(180deg, #a8c2d4, var(--cyan)); border:none; border-radius:8px; padding:13px 24px;
+    cursor:pointer; box-shadow: 0 8px 20px rgba(0,0,0,.35); transition: transform .15s ease, box-shadow .15s ease; }
+  .btn:hover{ transform:translateY(-1px); box-shadow: 0 12px 24px rgba(0,0,0,.45); }
+  .btn:disabled{ opacity:.3; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn.warm{ background: linear-gradient(180deg, var(--ember-glow), var(--ember)); box-shadow:0 8px 20px rgba(232,147,91,.3); color:var(--warm-ink); }
+  .btn.ghost{ background:none; color:var(--frost-dim); border:1px solid rgba(126,147,172,.3); box-shadow:none; }
+
+  .elig{ min-height:70px; margin-bottom:6px; }
+  .elig-line{ font-family:'JetBrains Mono', monospace; color:var(--cyan); opacity:0; transform:translateY(4px);
+    animation: eligIn .4s ease forwards; margin:0 0 6px; font-size:.86rem; }
+  @keyframes eligIn{ to{opacity:1; transform:translateY(0);} }
+
+  .camera-frame{ position:relative; width:100%; aspect-ratio:4/3; background:#020304; border-radius:8px;
+    overflow:hidden; margin-bottom:20px; border:1px solid rgba(127,163,191,.22); }
+  .camera-frame video, .camera-frame img.captured{ width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
+  .corner{ position:absolute; width:22px; height:22px; }
+  .corner.tl{ top:8px; left:8px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan); }
+  .corner.tr{ top:8px; right:8px; border-top:2px solid var(--cyan); border-right:2px solid var(--cyan); }
+  .corner.bl{ bottom:8px; left:8px; border-bottom:2px solid var(--cyan); border-left:2px solid var(--cyan); }
+  .corner.br{ bottom:8px; right:8px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan); }
+  .scan-line{ position:absolute; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent); top:0; animation: scan 2.4s linear infinite; opacity:.85; }
+  @keyframes scan{ 0%{top:0%;} 50%{top:96%;} 100%{top:0%;} }
+  .countdown-num{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:4.6rem; color:var(--frost);
+    background: rgba(5,8,16,.4); }
+  .status-tag{ font-family:'JetBrains Mono', monospace; font-size:.82rem; letter-spacing:.02em; color:var(--cyan);
+    margin-bottom:16px; min-height:1.2em; }
+
+  .verify-chip{ position:fixed; top:50%; left:50%; width:150px; background:var(--panel);
+    border:1px solid rgba(79,209,255,.4); border-radius:8px; padding:8px; z-index:50;
+    transform: translate(-50%,-50%) scale(0); box-shadow:0 20px 45px rgba(0,0,0,.5);
+    animation: chipIn .6s cubic-bezier(.2,1.4,.4,1) forwards, chipOut .5s ease forwards 1.6s; }
+  .verify-chip img{ width:100%; border-radius:4px; display:block; transform:scaleX(-1); }
+  .verify-chip .cap{ font-family:'JetBrains Mono', monospace; font-size:.68rem; color:#5fe8a0; text-align:center; margin-top:6px; }
+  @keyframes chipIn{ to{ transform:translate(-50%,-50%) scale(1); } }
+  @keyframes chipOut{ to{ transform:translate(-50%,-220%) scale(.5); opacity:0; } }
+
+  .camera-fallback{ margin-bottom:20px; }
+  .camera-fallback input[type=file]{ color:var(--frost-dim); font-size:.9rem; }
+
+  /* ---------- cinematic screen ---------- */
+  #screen-cine{ position:fixed; inset:0; z-index:5; display:none; align-items:center; justify-content:center;
+    flex-direction:column; text-align:center; padding:24px; }
+  #screen-cine.active{ display:flex; }
+
+  .buffer-block{ width:100%; max-width:460px; }
+  .bar-track{ width:100%; height:4px; background: rgba(126,147,172,.2); border-radius:99px; overflow:hidden; margin-bottom:10px; }
+  .bar-fill{ height:100%; width:0%; background: linear-gradient(90deg, var(--violet), var(--cyan)); box-shadow:0 0 10px var(--cyan); transition: width .1s linear; }
+  .bar-pct{ font-family:'JetBrains Mono', monospace; font-size:.78rem; color:var(--cyan); text-align:right; display:block; margin-bottom:18px; }
+  .terminal-lines{ text-align:left; font-family:'JetBrains Mono', monospace; font-size:.86rem; color:var(--cyan); min-height:150px; }
+  .term-line{ margin-bottom:8px; opacity:0; animation: termIn .3s ease forwards; }
+  @keyframes termIn{ to{ opacity:1; } }
+  .buffer-block.glitch{ animation: glitchShake .55s steps(2); }
+  @keyframes glitchShake{
+    0%{transform:translate(0,0);} 10%{transform:translate(-4px,3px);} 20%{transform:translate(4px,-2px);}
+    30%{transform:translate(-3px,0);} 40%{transform:translate(3px,3px);} 50%{transform:translate(-4px,-2px);}
+    60%{transform:translate(3px,1px);} 70%{transform:translate(-2px,-3px);} 80%{transform:translate(2px,3px);}
+    90%{transform:translate(-2px,0);} 100%{transform:translate(0,0);}
+  }
+  .blackout{ position:fixed; inset:0; background:#000; opacity:0; transition:opacity .25s ease; z-index:6; pointer-events:none; }
+
+  .cine-line{ font-family:'JetBrains Mono', monospace; color:var(--cyan); font-size:1.3rem; letter-spacing:.02em;
+    animation: lineCycle var(--dur,2000ms) ease forwards; }
+  .cine-line.warm{ font-family:'Fraunces', serif; font-weight:600; color:var(--parchment); }
+  .cine-line.big{ font-size:clamp(1.8rem,6vw,2.6rem); }
+  .cine-line.huge{ font-size:clamp(2.4rem,8vw,3.6rem); color:var(--gold-light); font-weight:700; }
+  @keyframes lineCycle{
+    0%{ opacity:0; transform:translateY(10px);} 14%{opacity:1; transform:translateY(0);}
+    82%{opacity:1;} 100%{opacity:0; transform:translateY(-10px);}
+  }
+
+  /* ---------- grand reveal ---------- */
+  #reveal-final{ display:none; max-width:540px; width:100%; }
+  #reveal-final.show{ display:block; animation: fadeSlide .8s ease; }
+  .final-title{ font-family:'Fraunces', serif; font-weight:700; font-size:clamp(2rem,7vw,3rem); color:var(--parchment);
+    margin:0 0 18px; }
+  .final-msg{ font-family:'Fraunces', serif; font-size:1.1rem; line-height:1.7; color:var(--parchment);
+    margin:0 0 26px; white-space:pre-line; }
+  .final-sig{ font-family:'Caveat', cursive; font-size:1.7rem; color:var(--gold-light); margin-bottom:28px; }
+  .collage{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:22px; }
+  .collage .poloid{ width:130px; background:var(--parchment); padding:8px 8px 22px; border-radius:2px;
+    box-shadow:0 14px 30px rgba(0,0,0,.45); opacity:0; animation: dropIn .6s ease forwards; }
+  .collage .poloid:nth-child(1){ animation-delay:.15s; --rot:-6deg; }
+  .collage .poloid:nth-child(2){ animation-delay:.4s; --rot:5deg; }
+  .collage .poloid img{ width:100%; display:block; transform:scaleX(-1); }
+  .collage .poloid .cap{ font-family:'Caveat', cursive; color:#3a2c22; text-align:center; font-size:1rem; margin-top:6px; }
+  @keyframes dropIn{ from{ opacity:0; transform:translateY(30px) rotate(0);} to{ opacity:1; transform:translateY(0) rotate(var(--rot,0deg)); } }
+
+  .mute-btn{ position:absolute; top:18px; right:18px; width:36px; height:36px; border-radius:50%;
+    background:rgba(244,233,216,.08); border:1px solid rgba(244,233,216,.25); color:var(--parchment-dim);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+
+  .confetti-piece{ position:fixed; top:-20px; width:8px; height:14px; z-index:60; pointer-events:none; animation: fall linear forwards; }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(var(--rot)); opacity:.9; } }
+
+  @media (max-width:480px){ .card{ padding:32px 24px; } .topnav{ padding:14px 18px; } }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  }
+  :focus-visible{ outline:2px solid var(--cyan); outline-offset:3px; }
+</style>
+</head>
+<body>
+
+<div class="bg-layer bg-cold" id="bg-cold"></div>
+<div class="bg-warm" id="bg-warm"></div>
+<div class="bg-layer" id="nodes"></div>
+<div class="blackout" id="blackout"></div>
+
+<div class="ticker-wrap act1-chrome" id="ticker">
+  <div class="ticker-track" id="ticker-track"></div>
+</div>
+<div class="topnav act1-chrome" id="topnav">
+  <span class="brand">APEXFOLIO</span>
+  <span class="badge">🔒 256-BIT ENCRYPTED</span>
+</div>
+
+<div class="stage" id="stage">
+  <div class="card">
+
+    <div class="screen active" id="screen-intro">
+      <span class="stepper">Institutional-grade investing</span>
+      <h1 class="display">Built around you. Verified for you.</h1>
+      <p class="sub">Apexfolio requires a one-time identity check before we activate your account. Takes under two minutes.</p>
+      <button class="btn" onclick="unlockAudio(); go('screen-name')">Begin verification →</button>
+    </div>
+
+    <div class="screen" id="screen-name">
+      <span class="stepper">Account setup — Step 1 of 3</span>
+      <h1 class="display">Let's start with your legal name.</h1>
+      <label class="field-label" for="inp-name">Full legal name</label>
+      <input type="text" id="inp-name" placeholder="As it appears on your ID" autocomplete="off">
+      <div style="margin-top:16px;"><button class="btn" id="btn-name" disabled onclick="go('screen-dob')">Continue</button></div>
+    </div>
+
+    <div class="screen" id="screen-dob">
+      <span class="stepper">Account setup — Step 2 of 3</span>
+      <h1 class="display">Confirm your date of birth.</h1>
+      <label class="field-label" for="inp-dob">Date of birth</label>
+      <input type="date" id="inp-dob">
+      <div class="micro">Required for regulatory eligibility screening.</div>
+      <div class="elig" id="elig"></div>
+      <div><button class="btn" id="btn-dob" disabled onclick="revealEligibility()">Continue</button></div>
+    </div>
+
+    <div class="screen" id="screen-cam1">
+      <span class="stepper">Account setup — Step 3 of 3</span>
+      <h1 class="display">Let's confirm it's really you.</h1>
+      <p class="sub">Bank-level facial verification. Align your face within the frame and hold still.</p>
+      <div class="camera-frame" id="frame1">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <div class="scan-line"></div>
+        <video id="video1" autoplay playsinline muted></video>
+      </div>
+      <div class="status-tag" id="status1"></div>
+      <div><button class="btn" id="btn-cam1" onclick="startCapture(1)">Start scan</button></div>
+    </div>
+
+    <div class="screen" id="screen-cam2">
+      <span class="stepper">Beneficiary verification</span>
+      <h1 class="display">Almost done — add your beneficiaries.</h1>
+      <p class="sub" id="cam2-sub">For joint account setup, please include your listed beneficiaries in frame.</p>
+      <div class="camera-frame" id="frame2">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <div class="scan-line"></div>
+        <video id="video2" autoplay playsinline muted></video>
+      </div>
+      <div class="status-tag" id="status2"></div>
+      <div><button class="btn" id="btn-cam2" onclick="startCapture(2)">Start scan</button></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="screen-cine">
+  <div class="buffer-block" id="buffer-block">
+    <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+    <span class="bar-pct" id="bar-pct">0%</span>
+    <div class="terminal-lines" id="terminal-lines"></div>
+  </div>
+  <div class="cine-line" id="cine-line" style="display:none;"></div>
+
+  <div id="reveal-final">
+    <button class="mute-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
+    <h1 class="final-title" id="final-title">Happy Birthday.</h1>
+    <div class="final-msg" id="final-msg"></div>
+    <div class="collage" id="final-collage"></div>
+    <div class="final-sig" id="final-sig"></div>
+    <div><button class="btn warm" onclick="location.reload()">Play it again</button></div>
+  </div>
+</div>
+
+<script>
+  /* ====================== EDIT THIS SECTION TO PERSONALIZE ====================== */
+  const CONFIG = {
+    yourName: "You",
+    momName: "Mom",   // set to "" to omit
+    cam2SubTemplate: (mom) => mom
+      ? `For joint account setup, please include ${mom} in frame with you.`
+      : `For joint account setup, please include your family in frame with you.`,
+    message:
+`Every year I get to celebrate you feels like a gift to me too.
+
+[[EDIT ME — add a real memory, an inside joke, or what you want to tell him.]]
+
+I hope today is as good to you as you've always been to us.`,
+  };
+  /* ================================================================================ */
+
+  function go(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  // ---------- ambient background ----------
+  (function initNodes(){
+    const wrap = document.getElementById('nodes');
+    for(let i=0;i<24;i++){
+      const n = document.createElement('div');
+      n.className = 'node-particle';
+      const size = 2 + Math.random()*3;
+      n.style.width = size+'px'; n.style.height = size+'px';
+      n.style.left = Math.random()*100+'vw';
+      n.style.top = Math.random()*100+'vh';
+      n.style.animationDuration = (4+Math.random()*4)+'s';
+      n.style.animationDelay = (Math.random()*4)+'s';
+      wrap.appendChild(n);
+    }
+  })();
+  function initEmbers(){
+    const wrap = document.getElementById('nodes');
+    for(let i=0;i<26;i++){
+      const e = document.createElement('div');
+      e.className = 'ember-particle';
+      const size = 2 + Math.random()*4;
+      e.style.width = size+'px'; e.style.height = size+'px';
+      e.style.left = Math.random()*100+'vw';
+      e.style.setProperty('--dx', (Math.random()*80-40)+'px');
+      e.style.animationDuration = (7+Math.random()*8)+'s';
+      e.style.animationDelay = (Math.random()*6)+'s';
+      wrap.appendChild(e);
+    }
+  }
+
+  // ---------- ticker ----------
+  (function initTicker(){
+    const symbols = [
+      ['AAPL','+2.34%'], ['NVDA','+5.12%'], ['TSLA','-1.08%'],
+      ['BTC','+3.41%'], ['SPX','+0.87%'], ['MSFT','-0.42%'],
+      ['GOOGL','+1.65%'], ['AMZN','+0.93%'], ['ETH','-2.10%']
+    ];
+    const track = document.getElementById('ticker-track');
+    let html = '';
+    for(let rep=0; rep<2; rep++){
+      symbols.forEach(([sym,pct]) => {
+        html += `<span><b>${sym}</b> <span class="pct">${pct}</span></span>`;
+      });
+    }
+    track.innerHTML = html;
+  })();
+
+  // ---------- name ----------
+  const nameInput = document.getElementById('inp-name');
+  const btnName = document.getElementById('btn-name');
+  let typedName = "";
+  nameInput.addEventListener('input', () => {
+    typedName = nameInput.value.trim();
+    btnName.disabled = typedName.length === 0;
+  });
+
+  // ---------- dob ----------
+  const dobInput = document.getElementById('inp-dob');
+  const btnDob = document.getElementById('btn-dob');
+  let daysActive = 0;
+  dobInput.addEventListener('input', () => { btnDob.disabled = !dobInput.value; });
+
+  function revealEligibility(){
+    const dob = new Date(dobInput.value);
+    const today = new Date();
+    daysActive = Math.max(0, Math.floor((today - dob) / 86400000));
+    const el = document.getElementById('elig');
+    el.innerHTML = '';
+    btnDob.style.display = 'none';
+    const lines = [
+      '> Parsing date of birth...',
+      '> Cross-checking jurisdiction...',
+      '> Regulatory eligibility: CONFIRMED ✓'
+    ];
+    lines.forEach((line,i) => {
+      setTimeout(() => {
+        const p = document.createElement('p');
+        p.className = 'elig-line';
+        p.textContent = line;
+        el.appendChild(p);
+      }, i*550);
+    });
+    setTimeout(() => {
+      const cont = document.createElement('button');
+      cont.className = 'btn';
+      cont.textContent = 'Continue';
+      cont.onclick = () => go('screen-cam1');
+      el.after(cont);
+      startCameraPreview(1);
+    }, lines.length*550 + 250);
+  }
+
+  // ---------- camera ----------
+  let stream1=null, stream2=null, photo1=null, photo2=null;
+
+  async function startCameraPreview(n){
+    const video = document.getElementById('video'+n);
+    const status = document.getElementById('status'+n);
+    try{
+      const s = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false });
+      if(n===1) stream1=s; else stream2=s;
+      video.srcObject = s;
+      status.textContent = '';
+    }catch(err){
+      status.textContent = 'Camera unavailable — upload a photo instead.';
+      showFallback(n);
+    }
+  }
+  function showFallback(n){
+    const frame = document.getElementById('frame'+n);
+    const wrap = document.createElement('div');
+    wrap.className = 'camera-fallback';
+    wrap.innerHTML = `<input type="file" accept="image/*" capture="user" onchange="fallbackCapture(${n}, this)">`;
+    frame.after(wrap);
+    document.getElementById('btn-cam'+n).style.display='none';
+  }
+  function fallbackCapture(n, input){
+    const file = input.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => finishCapture(n, e.target.result);
+    reader.readAsDataURL(file);
+  }
+  function startCapture(n){
+    const video = document.getElementById('video'+n);
+    const frame = document.getElementById('frame'+n);
+    const btn = document.getElementById('btn-cam'+n);
+    btn.disabled = true;
+    const cd = document.createElement('div');
+    cd.className = 'countdown-num';
+    frame.appendChild(cd);
+    let count = 3; cd.textContent = count;
+    const timer = setInterval(() => {
+      count--;
+      if(count > 0){ cd.textContent = count; }
+      else{
+        clearInterval(timer);
+        cd.textContent = '●';
+        setTimeout(() => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          const ctx = canvas.getContext('2d');
+          ctx.translate(canvas.width,0); ctx.scale(-1,1);
+          ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          const dataUrl = canvas.toDataURL('image/png');
+          cd.remove();
+          finishCapture(n, dataUrl);
+        }, 350);
+      }
+    }, 750);
+  }
+  function finishCapture(n, dataUrl){
+    if(n===1) photo1 = dataUrl; else photo2 = dataUrl;
+    const frame = document.getElementById('frame'+n);
+    const img = document.createElement('img');
+    img.className = 'captured'; img.src = dataUrl;
+    frame.querySelector('video')?.remove();
+    frame.appendChild(img);
+    document.getElementById('status'+n).textContent = 'Verified ✓';
+    const s = n===1 ? stream1 : stream2;
+    if(s) s.getTracks().forEach(t => t.stop());
+
+    const chip = document.createElement('div');
+    chip.className = 'verify-chip';
+    chip.innerHTML = `<img src="${dataUrl}"><div class="cap">${n===1?'PRIMARY_APPLICANT.VERIFIED':'BENEFICIARIES.VERIFIED'}</div>`;
+    document.body.appendChild(chip);
+    setTimeout(() => chip.remove(), 2200);
+
+    const btn = document.getElementById('btn-cam'+n);
+    btn.textContent = 'Continue'; btn.disabled = false;
+    btn.onclick = () => {
+      if(n===1){
+        document.getElementById('cam2-sub').textContent = CONFIG.cam2SubTemplate(CONFIG.momName);
+        go('screen-cam2');
+        startCameraPreview(2);
+      }else{
+        document.getElementById('ticker').classList.add('hidden');
+        document.getElementById('topnav').classList.add('hidden');
+        document.getElementById('stage').style.display = 'none';
+        document.getElementById('screen-cine').classList.add('active');
+        initEmbers();
+        runCinematic();
+      }
+    };
+  }
+
+  // ---------- audio ----------
+  let audioCtx=null, masterGain=null, muted=false;
+  function unlockAudio(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 1;
+      masterGain.connect(audioCtx.destination);
+    }
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }
+  function toggleMute(){
+    muted = !muted;
+    if(masterGain) masterGain.gain.value = muted ? 0 : 1;
+    document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+  }
+  function playChord(freqs, duration=2.2, vol=0.05, delayMs=0){
+    if(!audioCtx) return;
+    setTimeout(() => {
+      const now = audioCtx.currentTime;
+      freqs.forEach(f => {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine'; osc.frequency.value = f;
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(vol, now+duration*0.35);
+        gain.gain.linearRampToValueAtTime(0, now+duration);
+        osc.connect(gain).connect(masterGain);
+        osc.start(now); osc.stop(now+duration+0.1);
+      });
+    }, delayMs);
+  }
+  function playSwellSoft(){ playChord([261.63,329.63,392.00], 2.6, 0.045); }
+  function playSwellBig(){
+    playChord([349.23,440.00,523.25], 2.4, 0.05);
+    playChord([261.63,329.63,392.00,523.25], 2.8, 0.06, 850);
+  }
+
+  // ---------- buffering ----------
+  async function runBuffering(){
+    const linesToShow = [
+      '> Compiling investor profile...',
+      '> Cross-referencing market indices...',
+      '> Calculating risk tolerance...',
+      '> Modeling 30-year portfolio growth...',
+      '> Status: on track to be the next king of the stock market.'
+    ];
+    const termEl = document.getElementById('terminal-lines');
+    const bar = document.getElementById('bar-fill');
+    const pct = document.getElementById('bar-pct');
+    const block = document.getElementById('buffer-block');
+    block.style.display = 'block';
+
+    const totalTime = linesToShow.length*550 + 800;
+    const start = Date.now();
+    const progressTimer = setInterval(() => {
+      const elapsed = Date.now()-start;
+      const p = Math.min(96, Math.round((elapsed/totalTime)*96));
+      bar.style.width = p+'%'; pct.textContent = p+'%';
+    }, 80);
+
+    for(const line of linesToShow){
+      const p = document.createElement('div');
+      p.className = 'term-line'; p.textContent = line;
+      termEl.appendChild(p);
+      await sleep(550);
+    }
+    clearInterval(progressTimer);
+    bar.style.width='96%'; pct.textContent='96%';
+    await sleep(400);
+
+    block.classList.add('glitch');
+    await sleep(160);
+    bar.style.width='100%'; pct.textContent='100%';
+    await sleep(320);
+
+    document.getElementById('blackout').style.opacity='1';
+    await sleep(220);
+    block.style.display='none';
+    document.getElementById('blackout').style.opacity='0';
+    await sleep(150);
+  }
+
+  // ---------- cinematic line driver ----------
+  const lineEl = document.getElementById('cine-line');
+  async function showLine(text, durMs=2000, cls=''){
+    lineEl.style.display = 'block';
+    lineEl.textContent = text;
+    lineEl.className = 'cine-line ' + cls;
+    lineEl.style.setProperty('--dur', durMs+'ms');
+    lineEl.style.animation = 'none';
+    void lineEl.offsetWidth;
+    lineEl.style.animation = '';
+    await sleep(durMs);
+  }
+
+  async function runCinematic(){
+    await runBuffering();
+
+    await showLine('Wait.', 1700, 'mono');
+    await showLine(`...it seems it's your birthday.`, 2300, 'mono');
+    await showLine('So does that mean...?', 2200, 'mono');
+
+    document.getElementById('bg-warm').style.opacity = '1';
+    playSwellSoft();
+    await sleep(500);
+
+    await showLine('A son.', 1500, 'warm big');
+    await showLine('A brother.', 1500, 'warm big');
+    await showLine('A husband.', 1700, 'warm big');
+    await sleep(500);
+    await showLine('And...', 1400, 'warm big');
+    await sleep(350);
+    await showLine('A Father.', 2200, 'warm huge');
+    await showLine('The most complete human being one could ask for.', 2900, 'warm big');
+
+    lineEl.style.display = 'none';
+    await sleep(200);
+    showGrandReveal();
+  }
+
+  function showGrandReveal(){
+    const displayName = typedName ? cap(typedName.split(' ')[0]) : 'You';
+    document.getElementById('final-title').textContent = `Happy Birthday, ${displayName}.`;
+    document.getElementById('final-msg').textContent = CONFIG.message;
+    let sig = `With so much love, ${CONFIG.yourName}`;
+    if(CONFIG.momName) sig += ` & ${CONFIG.momName}`;
+    document.getElementById('final-sig').textContent = sig;
+
+    const collage = document.getElementById('final-collage');
+    collage.innerHTML = '';
+    [photo1, photo2].forEach((p,i) => {
+      if(!p) return;
+      const d = document.createElement('div');
+      d.className = 'poloid';
+      d.innerHTML = `<img src="${p}"><div class="cap">${i===0?'Son':'Family'}</div>`;
+      collage.appendChild(d);
+    });
+
+    document.getElementById('reveal-final').classList.add('show');
+    launchConfetti();
+    playSwellBig();
+  }
+
+  function launchConfetti(){
+    const colors = ['#e8935b','#c9a227','#c98a8a','#f4e9d8'];
+    for(let i=0;i<80;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random()*100+'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.setProperty('--rot', (Math.random()*360)+'deg');
+      c.style.animationDuration = (2.2+Math.random()*1.8)+'s';
+      c.style.animationDelay = (Math.random()*0.7)+'s';
+      c.style.opacity = 0.85;
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4600);
+    }
+  }
+</script>
+</body>
+</html>
