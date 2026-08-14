@@ -24,6 +24,7 @@
     --gold-light:#e8cf7a;
     --parchment:#f4e9d8;
     --parchment-dim:#cdb99b;
+    --rose:#c98a8a;
   }
 
   *{ box-sizing:border-box; }
@@ -62,22 +63,17 @@
   @keyframes drift{ 0%{ transform:translateY(0) translateX(0); opacity:0;} 12%{opacity:.9;} 88%{opacity:.3;}
     100%{ transform:translateY(-108vh) translateX(var(--dx)); opacity:0;} }
 
-  /* ---------- ticker ---------- */
-  .ticker-wrap{ position:relative; z-index:2; width:100%; overflow:hidden; background:rgba(3,5,8,.75);
-    border-bottom:1px solid rgba(127,163,191,.1); padding:8px 0; backdrop-filter: blur(6px); }
-  .ticker-track{ display:flex; gap:40px; white-space:nowrap; animation: tickerMove 26s linear infinite; width:max-content; }
-  .ticker-track span{ font-family:'JetBrains Mono', monospace; font-size:.78rem; color:var(--frost-dim); letter-spacing:.02em; }
-  .ticker-track span b{ color:var(--cyan); font-weight:500; }
-  .ticker-track .pct{ color:var(--frost-dim); opacity:.8; }
-  @keyframes tickerMove{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+  /* ---------- grain texture ---------- */
+  .grain{ position:fixed; inset:0; z-index:3; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 
   .topnav{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between;
-    padding:18px 32px; }
-  .brand{ font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:.03em; font-size:1.1rem;
-    color: var(--frost-dim); opacity:.9; }
-  .badge{ font-family:'JetBrains Mono', monospace; font-size:.7rem; color:var(--frost-dim); border:1px solid rgba(127,163,191,.18);
-    padding:4px 10px; border-radius:999px; opacity:.8; }
-  .act1-chrome.hidden, .ticker-wrap.hidden{ display:none; }
+    padding:26px 36px; }
+  .brand{ font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:.02em; font-size:1rem;
+    color: var(--frost-dim); opacity:.75; }
+  .badge{ font-family:'JetBrains Mono', monospace; font-size:.68rem; color:var(--frost-dim); letter-spacing:.03em;
+    opacity:.5; }
+  .act1-chrome.hidden{ display:none; }
 
   /* ---------- stage/card ---------- */
   .stage{ position:relative; z-index:1; min-height:82vh; display:flex; align-items:center; justify-content:center; padding:24px; }
@@ -166,32 +162,44 @@
   }
   .blackout{ position:fixed; inset:0; background:#000; opacity:0; transition:opacity .25s ease; z-index:6; pointer-events:none; }
 
-  .cine-line{ font-family:'JetBrains Mono', monospace; color:var(--cyan); font-size:1.3rem; letter-spacing:.02em;
-    animation: lineCycle var(--dur,2000ms) ease forwards; }
-  .cine-line.warm{ font-family:'Fraunces', serif; font-weight:600; color:var(--parchment); }
+  .cine-container{ position:relative; min-height:120px; display:flex; align-items:center; justify-content:center; width:100%; max-width:640px; }
+  .cine-line{ position:absolute; left:0; right:0; text-align:center;
+    font-family:'JetBrains Mono', monospace; color:var(--cyan); font-size:1.35rem; letter-spacing:.02em;
+    opacity:0; transform:translateY(14px) scale(.97); filter:blur(4px);
+    transition: opacity .8s ease, transform .8s ease, filter .8s ease; }
+  .cine-line.in{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+  .cine-line.out{ opacity:0; transform:translateY(-14px) scale(.98); filter:blur(4px); }
+  .cine-line.warm{ font-family:'Fraunces', serif; font-weight:600; color:var(--parchment); transition-duration: 1s; }
   .cine-line.big{ font-size:clamp(1.8rem,6vw,2.6rem); }
   .cine-line.huge{ font-size:clamp(2.4rem,8vw,3.6rem); color:var(--gold-light); font-weight:700; }
-  @keyframes lineCycle{
-    0%{ opacity:0; transform:translateY(10px);} 14%{opacity:1; transform:translateY(0);}
-    82%{opacity:1;} 100%{opacity:0; transform:translateY(-10px);}
-  }
 
   /* ---------- grand reveal ---------- */
-  #reveal-final{ display:none; max-width:540px; width:100%; }
+  #reveal-final{ display:none; max-width:480px; width:100%; }
   #reveal-final.show{ display:block; animation: fadeSlide .8s ease; }
-  .final-title{ font-family:'Fraunces', serif; font-weight:700; font-size:clamp(2rem,7vw,3rem); color:var(--parchment);
-    margin:0 0 18px; }
-  .final-msg{ font-family:'Fraunces', serif; font-size:1.1rem; line-height:1.7; color:var(--parchment);
-    margin:0 0 26px; white-space:pre-line; }
-  .final-sig{ font-family:'Caveat', cursive; font-size:1.7rem; color:var(--gold-light); margin-bottom:28px; }
-  .collage{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:22px; }
-  .collage .poloid{ width:130px; background:var(--parchment); padding:8px 8px 22px; border-radius:2px;
-    box-shadow:0 14px 30px rgba(0,0,0,.45); opacity:0; animation: dropIn .6s ease forwards; }
-  .collage .poloid:nth-child(1){ animation-delay:.15s; --rot:-6deg; }
-  .collage .poloid:nth-child(2){ animation-delay:.4s; --rot:5deg; }
-  .collage .poloid img{ width:100%; display:block; transform:scaleX(-1); }
-  .collage .poloid .cap{ font-family:'Caveat', cursive; color:#3a2c22; text-align:center; font-size:1rem; margin-top:6px; }
-  @keyframes dropIn{ from{ opacity:0; transform:translateY(30px) rotate(0);} to{ opacity:1; transform:translateY(0) rotate(var(--rot,0deg)); } }
+
+  .hero-photo-wrap{ position:relative; width:min(300px, 72vw); margin:0 auto 28px; }
+  .hero-photo{ width:100%; aspect-ratio:4/5; border-radius:20px; overflow:hidden;
+    border:3px solid var(--gold-light); box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 0 8px rgba(244,233,216,.06);
+    opacity:0; transform:scale(.85) rotate(-3deg);
+    animation: heroPop 1s cubic-bezier(.2,1.15,.3,1) forwards .2s; }
+  .hero-photo img{ width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
+  @keyframes heroPop{ 60%{ opacity:1; transform:scale(1.03) rotate(1deg); } 100%{ opacity:1; transform:scale(1) rotate(0); } }
+
+  .balloon{ position:absolute; width:34px; opacity:0; animation: balloonIn .8s ease forwards, bob 3.4s ease-in-out infinite 1s; }
+  .balloon svg{ width:100%; display:block; filter:drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+  .balloon.b1{ top:-34px; left:-14px; animation-delay:.5s, 1s; }
+  .balloon.b2{ top:-44px; right:-10px; width:28px; animation-delay:.7s, 1.3s; }
+  .balloon.b3{ top:-20px; right:22px; width:22px; animation-delay:.9s, 1.6s; }
+  @keyframes balloonIn{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:translateY(0);} }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-8px) rotate(2deg);} }
+
+  .final-title{ font-family:'Fraunces', serif; font-weight:700; font-size:clamp(1.8rem,6.5vw,2.6rem); color:var(--parchment);
+    text-align:center; margin:0 0 18px; opacity:0; animation: fadeSlide .7s ease forwards .9s; }
+  .final-msg{ font-family:'Fraunces', serif; font-size:1.05rem; line-height:1.7; color:var(--parchment);
+    margin:0 0 24px; white-space:pre-line; opacity:0; animation: fadeSlide .7s ease forwards 1.15s; }
+  .final-sig{ font-family:'Caveat', cursive; font-size:1.7rem; color:var(--gold-light); margin-bottom:26px;
+    text-align:center; opacity:0; animation: fadeSlide .7s ease forwards 1.4s; }
+  .again-wrap{ text-align:center; opacity:0; animation: fadeSlide .7s ease forwards 1.6s; }
 
   .mute-btn{ position:absolute; top:18px; right:18px; width:36px; height:36px; border-radius:50%;
     background:rgba(244,233,216,.08); border:1px solid rgba(244,233,216,.25); color:var(--parchment-dim);
@@ -214,12 +222,10 @@
 <div class="bg-layer" id="nodes"></div>
 <div class="blackout" id="blackout"></div>
 
-<div class="ticker-wrap act1-chrome" id="ticker">
-  <div class="ticker-track" id="ticker-track"></div>
-</div>
+<div class="grain"></div>
 <div class="topnav act1-chrome" id="topnav">
-  <span class="brand">APEXFOLIO</span>
-  <span class="badge">🔒 256-BIT ENCRYPTED</span>
+  <span class="brand">Apexfolio</span>
+  <span class="badge">Encrypted session</span>
 </div>
 
 <div class="stage" id="stage">
@@ -263,19 +269,6 @@
       <div><button class="btn" id="btn-cam1" onclick="startCapture(1)">Start scan</button></div>
     </div>
 
-    <div class="screen" id="screen-cam2">
-      <span class="stepper">Beneficiary verification</span>
-      <h1 class="display">Almost done — add your beneficiaries.</h1>
-      <p class="sub" id="cam2-sub">For joint account setup, please include your listed beneficiaries in frame.</p>
-      <div class="camera-frame" id="frame2">
-        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-        <div class="scan-line"></div>
-        <video id="video2" autoplay playsinline muted></video>
-      </div>
-      <div class="status-tag" id="status2"></div>
-      <div><button class="btn" id="btn-cam2" onclick="startCapture(2)">Start scan</button></div>
-    </div>
-
   </div>
 </div>
 
@@ -285,15 +278,20 @@
     <span class="bar-pct" id="bar-pct">0%</span>
     <div class="terminal-lines" id="terminal-lines"></div>
   </div>
-  <div class="cine-line" id="cine-line" style="display:none;"></div>
+  <div id="cine-container" class="cine-container"></div>
 
   <div id="reveal-final">
     <button class="mute-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
+    <div class="hero-photo-wrap" id="hero-photo-wrap">
+      <div class="balloon b1"><svg viewBox="0 0 40 52"><ellipse cx="20" cy="20" rx="18" ry="20" fill="var(--ember)"/><path d="M20 40 L20 52" stroke="var(--parchment-dim)" stroke-width="1"/><path d="M17 40 L23 40 L20 46 Z" fill="var(--ember)"/></svg></div>
+      <div class="balloon b2"><svg viewBox="0 0 40 52"><ellipse cx="20" cy="20" rx="18" ry="20" fill="var(--gold)"/><path d="M20 40 L20 52" stroke="var(--parchment-dim)" stroke-width="1"/><path d="M17 40 L23 40 L20 46 Z" fill="var(--gold)"/></svg></div>
+      <div class="balloon b3"><svg viewBox="0 0 40 52"><ellipse cx="20" cy="20" rx="18" ry="20" fill="var(--rose)"/><path d="M20 40 L20 52" stroke="var(--parchment-dim)" stroke-width="1"/><path d="M17 40 L23 40 L20 46 Z" fill="var(--rose)"/></svg></div>
+      <div class="hero-photo" id="hero-photo"></div>
+    </div>
     <h1 class="final-title" id="final-title">Happy Birthday.</h1>
     <div class="final-msg" id="final-msg"></div>
-    <div class="collage" id="final-collage"></div>
     <div class="final-sig" id="final-sig"></div>
-    <div><button class="btn warm" onclick="location.reload()">Play it again</button></div>
+    <div class="again-wrap"><button class="btn warm" onclick="location.reload()">Play it again</button></div>
   </div>
 </div>
 
@@ -301,10 +299,7 @@
   /* ====================== EDIT THIS SECTION TO PERSONALIZE ====================== */
   const CONFIG = {
     yourName: "You",
-    momName: "Mom",   // set to "" to omit
-    cam2SubTemplate: (mom) => mom
-      ? `For joint account setup, please include ${mom} in frame with you.`
-      : `For joint account setup, please include your family in frame with you.`,
+    momName: "Mom",   // set to "" to omit — used only in the closing signature
     message:
 `Every year I get to celebrate you feels like a gift to me too.
 
@@ -350,23 +345,6 @@ I hope today is as good to you as you've always been to us.`,
       wrap.appendChild(e);
     }
   }
-
-  // ---------- ticker ----------
-  (function initTicker(){
-    const symbols = [
-      ['AAPL','+2.34%'], ['NVDA','+5.12%'], ['TSLA','-1.08%'],
-      ['BTC','+3.41%'], ['SPX','+0.87%'], ['MSFT','-0.42%'],
-      ['GOOGL','+1.65%'], ['AMZN','+0.93%'], ['ETH','-2.10%']
-    ];
-    const track = document.getElementById('ticker-track');
-    let html = '';
-    for(let rep=0; rep<2; rep++){
-      symbols.forEach(([sym,pct]) => {
-        html += `<span><b>${sym}</b> <span class="pct">${pct}</span></span>`;
-      });
-    }
-    track.innerHTML = html;
-  })();
 
   // ---------- name ----------
   const nameInput = document.getElementById('inp-name');
@@ -414,14 +392,14 @@ I hope today is as good to you as you've always been to us.`,
   }
 
   // ---------- camera ----------
-  let stream1=null, stream2=null, photo1=null, photo2=null;
+  let stream1=null, photo1=null;
 
   async function startCameraPreview(n){
     const video = document.getElementById('video'+n);
     const status = document.getElementById('status'+n);
     try{
       const s = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false });
-      if(n===1) stream1=s; else stream2=s;
+      stream1=s;
       video.srcObject = s;
       status.textContent = '';
     }catch(err){
@@ -451,7 +429,7 @@ I hope today is as good to you as you've always been to us.`,
     const cd = document.createElement('div');
     cd.className = 'countdown-num';
     frame.appendChild(cd);
-    let count = 3; cd.textContent = count;
+    let count = 5; cd.textContent = count;
     const timer = setInterval(() => {
       count--;
       if(count > 0){ cd.textContent = count; }
@@ -473,37 +451,29 @@ I hope today is as good to you as you've always been to us.`,
     }, 750);
   }
   function finishCapture(n, dataUrl){
-    if(n===1) photo1 = dataUrl; else photo2 = dataUrl;
+    photo1 = dataUrl;
     const frame = document.getElementById('frame'+n);
     const img = document.createElement('img');
     img.className = 'captured'; img.src = dataUrl;
     frame.querySelector('video')?.remove();
     frame.appendChild(img);
     document.getElementById('status'+n).textContent = 'Verified ✓';
-    const s = n===1 ? stream1 : stream2;
-    if(s) s.getTracks().forEach(t => t.stop());
+    if(stream1) stream1.getTracks().forEach(t => t.stop());
 
     const chip = document.createElement('div');
     chip.className = 'verify-chip';
-    chip.innerHTML = `<img src="${dataUrl}"><div class="cap">${n===1?'PRIMARY_APPLICANT.VERIFIED':'BENEFICIARIES.VERIFIED'}</div>`;
+    chip.innerHTML = `<img src="${dataUrl}"><div class="cap">IDENTITY.VERIFIED</div>`;
     document.body.appendChild(chip);
     setTimeout(() => chip.remove(), 2200);
 
     const btn = document.getElementById('btn-cam'+n);
     btn.textContent = 'Continue'; btn.disabled = false;
     btn.onclick = () => {
-      if(n===1){
-        document.getElementById('cam2-sub').textContent = CONFIG.cam2SubTemplate(CONFIG.momName);
-        go('screen-cam2');
-        startCameraPreview(2);
-      }else{
-        document.getElementById('ticker').classList.add('hidden');
-        document.getElementById('topnav').classList.add('hidden');
-        document.getElementById('stage').style.display = 'none';
-        document.getElementById('screen-cine').classList.add('active');
-        initEmbers();
-        runCinematic();
-      }
+      document.getElementById('topnav').classList.add('hidden');
+      document.getElementById('stage').style.display = 'none';
+      document.getElementById('screen-cine').classList.add('active');
+      initEmbers();
+      runCinematic();
     };
   }
 
@@ -560,7 +530,7 @@ I hope today is as good to you as you've always been to us.`,
     const block = document.getElementById('buffer-block');
     block.style.display = 'block';
 
-    const totalTime = linesToShow.length*550 + 800;
+    const totalTime = linesToShow.length*750 + 1000;
     const start = Date.now();
     const progressTimer = setInterval(() => {
       const elapsed = Date.now()-start;
@@ -572,59 +542,77 @@ I hope today is as good to you as you've always been to us.`,
       const p = document.createElement('div');
       p.className = 'term-line'; p.textContent = line;
       termEl.appendChild(p);
-      await sleep(550);
+      await sleep(750);
     }
     clearInterval(progressTimer);
     bar.style.width='96%'; pct.textContent='96%';
-    await sleep(400);
+    await sleep(700);
 
     block.classList.add('glitch');
-    await sleep(160);
+    await sleep(550);
     bar.style.width='100%'; pct.textContent='100%';
-    await sleep(320);
+    await sleep(500);
 
     document.getElementById('blackout').style.opacity='1';
-    await sleep(220);
+    await sleep(400);
     block.style.display='none';
     document.getElementById('blackout').style.opacity='0';
-    await sleep(150);
+    await sleep(500);
   }
 
   // ---------- cinematic line driver ----------
-  const lineEl = document.getElementById('cine-line');
-  async function showLine(text, durMs=2000, cls=''){
-    lineEl.style.display = 'block';
-    lineEl.textContent = text;
-    lineEl.className = 'cine-line ' + cls;
-    lineEl.style.setProperty('--dur', durMs+'ms');
-    lineEl.style.animation = 'none';
-    void lineEl.offsetWidth;
-    lineEl.style.animation = '';
-    await sleep(durMs);
+  // Each line is a brand-new element with a real CSS transition (fade+rise in,
+  // hold, fade+lift out) rather than a shared element replaying a keyframe —
+  // far more reliable across browsers than restarting an animation in place.
+  const cineContainer = document.getElementById('cine-container');
+  function nextFrame(){ return new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))); }
+
+  async function showLine(text, { hold = 1800, cls = '', fade = 800 } = {}){
+    const el = document.createElement('div');
+    el.className = 'cine-line ' + cls;
+    el.textContent = text;
+    el.style.transitionDuration = fade + 'ms';
+    cineContainer.appendChild(el);
+
+    await nextFrame();
+    el.classList.add('in');
+    await sleep(fade + hold);
+
+    el.classList.remove('in');
+    el.classList.add('out');
+    await sleep(fade);
+    el.remove();
   }
 
   async function runCinematic(){
     await runBuffering();
+    await sleep(500);
 
-    await showLine('Wait.', 1700, 'mono');
-    await showLine(`...it seems it's your birthday.`, 2300, 'mono');
-    await showLine('So does that mean...?', 2200, 'mono');
+    await showLine('Wait.', { hold: 1300, cls: 'mono' });
+    await sleep(400);
+    await showLine(`...it seems it's your birthday.`, { hold: 1900, cls: 'mono' });
+    await sleep(300);
+    await showLine('So does that mean...?', { hold: 2000, cls: 'mono' });
+    await sleep(600);
 
     document.getElementById('bg-warm').style.opacity = '1';
     playSwellSoft();
-    await sleep(500);
+    await sleep(1200);
 
-    await showLine('A son.', 1500, 'warm big');
-    await showLine('A brother.', 1500, 'warm big');
-    await showLine('A husband.', 1700, 'warm big');
+    await showLine('A son.', { hold: 1300, cls: 'warm big' });
+    await sleep(250);
+    await showLine('A brother.', { hold: 1300, cls: 'warm big' });
+    await sleep(250);
+    await showLine('A husband.', { hold: 1500, cls: 'warm big' });
+    await sleep(900);
+    await showLine('And...', { hold: 1300, cls: 'warm big' });
+    await sleep(700);
+    await showLine('A Father.', { hold: 2200, cls: 'warm huge', fade: 1000 });
     await sleep(500);
-    await showLine('And...', 1400, 'warm big');
-    await sleep(350);
-    await showLine('A Father.', 2200, 'warm huge');
-    await showLine('The most complete human being one could ask for.', 2900, 'warm big');
+    await showLine('The most complete human being one could ask for.', { hold: 2600, cls: 'warm big' });
 
-    lineEl.style.display = 'none';
-    await sleep(200);
+    await sleep(500);
+    cineContainer.style.display = 'none';
     showGrandReveal();
   }
 
@@ -636,15 +624,10 @@ I hope today is as good to you as you've always been to us.`,
     if(CONFIG.momName) sig += ` & ${CONFIG.momName}`;
     document.getElementById('final-sig').textContent = sig;
 
-    const collage = document.getElementById('final-collage');
-    collage.innerHTML = '';
-    [photo1, photo2].forEach((p,i) => {
-      if(!p) return;
-      const d = document.createElement('div');
-      d.className = 'poloid';
-      d.innerHTML = `<img src="${p}"><div class="cap">${i===0?'Son':'Family'}</div>`;
-      collage.appendChild(d);
-    });
+    const heroPhoto = document.getElementById('hero-photo');
+    if(photo1){
+      heroPhoto.innerHTML = `<img src="${photo1}">`;
+    }
 
     document.getElementById('reveal-final').classList.add('show');
     launchConfetti();
